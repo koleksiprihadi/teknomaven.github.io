@@ -1,12 +1,48 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { API_ENDPOINTS } from './config/api';
 
 export default function HomePage() {
+  const [services, setServices] = useState([]);
+  const [portfolio, setPortfolio] = useState([]);
+  const [team, setTeam] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     document.title = 'TeknoMaven - Membangun Masa Depan Digital';
+    loadData();
   }, []);
+
+  async function loadData() {
+    try {
+      // Load services
+      const servicesResponse = await fetch(`${API_ENDPOINTS.homepage}?action=getServices`);
+      const servicesData = await servicesResponse.json();
+      if (servicesData.services) {
+        setServices(servicesData.services);
+      }
+
+      // Load portfolio
+      const portfolioResponse = await fetch(`${API_ENDPOINTS.homepage}?action=getPortfolio&page=1&limit=6`);
+      const portfolioData = await portfolioResponse.json();
+      if (portfolioData.portfolio) {
+        setPortfolio(portfolioData.portfolio);
+      }
+
+      // Load team
+      const teamResponse = await fetch(`${API_ENDPOINTS.homepage}?action=getTeam`);
+      const teamData = await teamResponse.json();
+      if (teamData.team) {
+        setTeam(teamData.team);
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="min-vh-100" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)' }}>
@@ -78,25 +114,89 @@ export default function HomePage() {
         <div className="container">
           <h2 className="display-4 fw-bold text-center mb-3">Layanan Kami</h2>
           <div className="mx-auto mb-5" style={{ width: '80px', height: '4px', background: 'linear-gradient(to right, #3b82f6, #06b6d4)' }}></div>
-          <div className="row g-4">
-            {[
-              { title: 'Web Development', desc: 'Pengembangan website modern dan responsif', icon: '💻' },
-              { title: 'Online Course', desc: 'Kursus programming dari dasar hingga advanced', icon: '📚' },
-              { title: 'Digital Products', desc: 'Tools dan template siap pakai untuk developer', icon: '🚀' },
-            ].map((service, i) => (
-              <div key={i} className="col-md-4">
-                <div className="card h-100 border-0 shadow-sm">
-                  <div className="card-body text-center p-4">
-                    <div className="fs-1 mb-3">{service.icon}</div>
-                    <h3 className="h4 fw-bold mb-3">{service.title}</h3>
-                    <p className="text-secondary">{service.desc}</p>
+          
+          {loading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : (
+            <div className="row g-4">
+              {services.length > 0 ? services.map((service, i) => (
+                <div key={i} className="col-md-4">
+                  <div className="card h-100 border-0 shadow-sm">
+                    <div className="card-body text-center p-4">
+                      <div className="fs-1 mb-3">{service.icon || '💻'}</div>
+                      <h3 className="h4 fw-bold mb-3">{service.title}</h3>
+                      <p className="text-secondary">{service.description}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              )) : (
+                // Fallback data
+                <>
+                  <div className="col-md-4">
+                    <div className="card h-100 border-0 shadow-sm">
+                      <div className="card-body text-center p-4">
+                        <div className="fs-1 mb-3">💻</div>
+                        <h3 className="h4 fw-bold mb-3">Web Development</h3>
+                        <p className="text-secondary">Pengembangan website modern dan responsif</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <div className="card h-100 border-0 shadow-sm">
+                      <div className="card-body text-center p-4">
+                        <div className="fs-1 mb-3">📚</div>
+                        <h3 className="h4 fw-bold mb-3">Online Course</h3>
+                        <p className="text-secondary">Kursus programming dari dasar hingga advanced</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <div className="card h-100 border-0 shadow-sm">
+                      <div className="card-body text-center p-4">
+                        <div className="fs-1 mb-3">🚀</div>
+                        <h3 className="h4 fw-bold mb-3">Digital Products</h3>
+                        <p className="text-secondary">Tools dan template siap pakai untuk developer</p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </section>
+
+      {/* Portfolio Section */}
+      {portfolio.length > 0 && (
+        <section className="py-5 bg-white">
+          <div className="container">
+            <h2 className="display-4 fw-bold text-center mb-3">Portfolio</h2>
+            <div className="mx-auto mb-5" style={{ width: '80px', height: '4px', background: 'linear-gradient(to right, #3b82f6, #06b6d4)' }}></div>
+            <div className="row g-4">
+              {portfolio.slice(0, 6).map((item, i) => (
+                <div key={i} className="col-md-4">
+                  <div className="card border-0 shadow-sm h-100">
+                    <img src={item.thumbnail} className="card-img-top" alt={item.title} style={{ height: '200px', objectFit: 'cover' }} />
+                    <div className="card-body">
+                      <h5 className="card-title fw-bold">{item.title}</h5>
+                      <p className="card-text text-secondary">{item.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="text-center mt-4">
+              <Link href="/portofolio" className="btn btn-primary rounded-pill px-5">
+                Lihat Semua Portfolio
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="py-5 text-white" style={{ background: 'linear-gradient(135deg, #3b82f6, #06b6d4)' }}>
