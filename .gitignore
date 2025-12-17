@@ -37,3 +37,6 @@ next-env.d.ts
 
 # old backup
 /old-html-backup
+
+# zip files
+*.zip
